@@ -1,0 +1,29 @@
+name: fw build
+
+on: [push]
+
+jobs:
+  fw-ci:
+    name: Build Firmware
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./fw
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install avr-gcc
+        run: |
+          curl -L -o /tmp/avr-gcc-14.1.0-x64-linux.tar.bz2 https://github.com/ZakKemble/avr-gcc-build/releases/download/v14.1.0-1/avr-gcc-14.1.0-x64-linux.tar.bz2
+          echo Extracting avr-gcc archive
+          tar xf /tmp/avr-gcc-14.1.0-x64-linux.tar.bz2 --directory /opt
+          echo "PATH=/opt/avr-gcc-14.1.0-x64-linux/bin:$(echo $PATH)" >> $GITHUB_ENV
+      - name: make
+        run: |
+          make
+      - uses: actions/upload-artifact@v4
+        with:
+          name: beef-fw
+          path: fw/beef.hex
+          if-no-files-found: error
